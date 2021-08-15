@@ -28,7 +28,9 @@ Options:
 It will generate an `msvc` subdirectory in the given extension directory,
 containing the required `.sln` and `.vcxproj` files to be able to compile the
 extension using Visual Studio 2019, with support for Debug/Release and 32/64
-bits builds.
+bits builds.  It will alse create a `release.pl` and a `build.bat` scripts that
+can automatically compile and create release archive files for all installed
+PostgreSQL versions.
 
 Example:
 
@@ -50,8 +52,36 @@ Requirements
     installed from PGDG packages in the default location
     (`C:\Program Files\PostgreSQL\$MAJOR_VERSION`)
 
-Compiling the extension
------------------------
+Doing a release of your extension
+---------------------------------
+
+All you need to do is to execute the `msvc\release.bat` script.  It will setup
+the MSVC environment and call the `release.pl` script.  That script will
+prepare everything for a release under a
+`msvc\${extension_name}-${extension_version}` directory.
+
+It will automatically find the installed PostgreSQL version reading the
+`HKLM/SOFTWARE/PostgreSQL/Installations/` registry, compile the extension with
+all those versions and for each will generate a subdirectory containing the dll
+and the SQL scripts if any, and a zip archive with the same content.
+
+For instance, assuming that you have PostgreSQL 12 and 13 installed and
+released HypoPG 1.3.2, your `msvc` directory will now have this additional
+content:
+
+```
+msvc\hypopg-1.3.2\12-x64\lib\hypopg.dll
+msvc\hypopg-1.3.2\12-x64\share\extension\hypopg.control
+msvc\hypopg-1.3.2\12-x64\share\extension\*.sql
+msvc\hypopg-1.3.2\13-x64\lib\hypopg.dll
+msvc\hypopg-1.3.2\13-x64\share\extension\hypopg.control
+msvc\hypopg-1.3.2\13-x64\share\extension\*.sql
+msvc\hypopg-1.3.2\hypopg-1.3.2-pg12-x64.zip
+msvc\hypopg-1.3.2\hypopg-1.3.2-pg13-x64.zip
+```
+
+Manually compiling the extension
+--------------------------------
 
 The Visual Studio project contains a `pgver` parameter that can be used to
 compile the extension for a specific major version.

@@ -14,6 +14,7 @@ use warnings;
 use Cwd qw(getcwd);
 use Data::Dumper;
 use File::Basename;
+use File::Copy;
 use File::Spec::Functions;
 use Getopt::Long;
 use Time::Piece;
@@ -469,6 +470,24 @@ EOF
 	close($proj);
 }
 
+sub generate_utils
+{
+	my ($dir) = @_;
+	my $msvc = catfile($dir, "msvc");
+
+	open(my $bat, '>', catfile($msvc, "release.bat")) or die $!;
+	print $bat <<EOF;
+call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+
+ECHO Running release.pl
+cd %~dp0
+perl release.pl
+pause
+EOF
+
+	copy("release.pl", catfile($msvc, "release.pl"));
+}
+
 sub main
 {
 	my ($args) = @_;
@@ -479,4 +498,6 @@ sub main
 
 	generate_msvc($ext, $args->{dir}, $args->{extension},
 		$args->{"default-version"});
+
+	generate_utils($args->{dir});
 }
