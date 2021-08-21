@@ -51,6 +51,8 @@ Requirements
   - All major PostgreSQL versions for which you want to build the extension,
     installed from PGDG packages in the default location
     (`C:\Program Files\PostgreSQL\$MAJOR_VERSION`)
+  - Optionally, NSIS installed in the default location
+    (`C:\Program Files (x86)\NSIS) to generate installers
 
 Doing a release of your extension
 ---------------------------------
@@ -66,8 +68,8 @@ all those versions and for each will generate a subdirectory containing the dll
 and the SQL scripts if any, and a zip archive with the same content.
 
 For instance, assuming that you have PostgreSQL 12 and 13 installed and
-released HypoPG 1.3.2, your `msvc` directory will now have this additional
-content:
+released HypoPG 1.3.2 and NSIS installed, your `msvc` directory will now have
+this additional content:
 
 ```
 msvc\hypopg-1.3.2\12-x64\lib\hypopg.dll
@@ -76,9 +78,28 @@ msvc\hypopg-1.3.2\12-x64\share\extension\*.sql
 msvc\hypopg-1.3.2\13-x64\lib\hypopg.dll
 msvc\hypopg-1.3.2\13-x64\share\extension\hypopg.control
 msvc\hypopg-1.3.2\13-x64\share\extension\*.sql
+msvc\hypopg-1.3.2\hypopg-1.3.2-pg12-x64.exe
 msvc\hypopg-1.3.2\hypopg-1.3.2-pg12-x64.zip
+msvc\hypopg-1.3.2\hypopg-1.3.2-pg13-x64.exe
 msvc\hypopg-1.3.2\hypopg-1.3.2-pg13-x64.zip
 ```
+
+Installer
+---------
+
+If you have [NSIS](https://nsis.sourceforge.io/) installed in the default
+location (`C:\Program Files (x86)\NSIS), the `release.pl` script will generate
+a `.nsi` file and compile it using **makensis.exe** to generate an specific
+installer for each PostgreSQL major versions found when running the
+`release.pl` script/.  At execution time, he installer will try to discover the
+server's PostgreSQL installation path by reading the registry key
+**HKEY_LOCAL_MACHINE\SOFTWARE\PostgreSQL\Installations\postgresql-$architecture-$majorversion\Base
+Directory**.
+
+If the key is found, the installer will inform the user and use it as the
+default installation location.  Otherwise, the installer will inform the user
+that no installation was automatically found and will force the user to choose
+a location before being able to continue the installation.
 
 Manually compiling the extension
 --------------------------------
