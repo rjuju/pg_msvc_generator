@@ -300,7 +300,14 @@ EOF
 
 sub release_one_version
 {
-	my ($extname, $extversion, $sql_files, $pgver, $platform, $keepnsi) = @_;
+	my ($release) = @_;
+	my $extname = $release->{extname};
+	my $extversion = $release->{extversion};
+	my $sql_files = $release->{sql_files};
+	my $pgroot = $release->{pgroot};
+	my $pgver = $release->{pgver};
+	my $platform = $release->{platform};
+	my $keepnsi = $release->{keep_nsi};
 	my $out;
 
 	print "Compiling $extname for PostgreSQL $pgver ($platform)...\n";
@@ -308,7 +315,8 @@ sub release_one_version
 		"$extname.vcxproj",
 		"/p:Configuration=Release",
 		"/p:Platform=$platform",
-		"/p:pgver=$2");
+		"/p:pgroot=$pgroot",
+		"/p:pgver=$pgver");
 
 	run \@comp, ">&", \$out;
 
@@ -370,7 +378,7 @@ sub main
 	my $pound= $Registry->Delimiter("/");
 
 	my $hklm = $Registry->Open( "LMachine", {Access=>KEY_READ(), Delimiter=>"/"} );
-	my $path = "SOFTWARE/PostgreSQL/Installations/";
+	my $path = "SOFTWARE/PostgreSQL/Installations";
 	my $installs = $hklm->Open($path)
 		or die("Could not find PostgreSQL installations in \"HKLM/$path\".\n");
 
@@ -378,9 +386,23 @@ sub main
 		if ($ver =~ /postgresql(-x64)?-(\d+(\.\d+)?)/) {
 			my $pgver = $2;
 			my $platform = $1 ? "x64" : "x86";
+			my $pgroot = $installs->{"$ver/Base Directory"} or die(
+				"Could not find PostgreSQL installation directory"
+				. " in \"HKLM/$path/$ver/Base Directory.\n");
 
-			release_one_version($extname, $extversion, $sql_files, $pgver,
-				$platform, $args->{"keep-nsi"});
+			$pgroot =~ s/(.*)\\(\d+\.)?\d+$/$1/;
+
+			my %release = (
+				"extname"		=> $extname,
+				"extversion"	=> $extversion,
+				"sql_files"		=> $sql_files,
+				"pgroot"		=> $pgroot,
+				"pgver"			=> $pgver,
+				"platform"		=> $platform,
+				"keep_nsi"		=> $args->{"keep-nsi"},
+			);
+
+			release_one_version(\%release);
 		} else {
 			print "Could not understand version \"$ver\"."
 		}

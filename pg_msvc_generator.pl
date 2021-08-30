@@ -256,6 +256,8 @@ sub append_proj_default_version
 	print $fh <<EOF;
   <PropertyGroup>
     <PgVer Condition=" '\$(pgver)' == '' ">$default_version</PgVer>
+    <PgRoot Condition=" '\$(pgroot)|\$(Platform)' == '|win32' ">C:\\Program Files (x86)\\PostgreSQL</PgRoot>
+    <PgRoot Condition=" '\$(pgroot)|\$(Platform)' == '|x64' ">C:\\Program Files\\PostgreSQL</PgRoot>
   </PropertyGroup>
 EOF
 }
@@ -290,9 +292,7 @@ sub append_proj_includes
 
 	foreach my $platform (@{$ext->{msvc}->{platform}})
 	{
-		my $root = $platform eq "Win32"
-			? "C:\\Program Files (x86)\\PostgreSQL\\\$(PgVer)"
-			: "C:\\Program Files\\PostgreSQL\\\$(PgVer)";
+		my $root = "\$(PgRoot)\\\$(PgVer)";
 		my $inc_dirs = "$root\\include\\server\\port\\win32_msvc"
 			. ";$root\\include\\server\\port\\win32"
 			. ";$root\\include\\server"

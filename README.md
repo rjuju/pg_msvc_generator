@@ -49,11 +49,9 @@ Requirements
 
   - Perl
   - Visual Studio 2019
-  - All major PostgreSQL versions for which you want to build the extension,
-    installed from PGDG packages in the default location
-    (`C:\Program Files\PostgreSQL\$MAJOR_VERSION`)
-  - Optionally, NSIS installed in the default location
-    (`C:\Program Files (x86)\NSIS) to generate installers
+  - All major PostgreSQL versions for which you want to build the extension
+  - Optionally, NSIS installed **in the default location**
+    (`C:\Program Files (x86)\NSIS`) to generate installers
 
 Doing a release of your extension
 ---------------------------------
@@ -108,6 +106,14 @@ Manually compiling the extension
 
 The Visual Studio project contains a `pgver` parameter that can be used to
 compile the extension for a specific major version.
+
+Parameters available for the msvc project:
+
+  - **pgroot**: root directory of your PostgreSQL local installations.  Default
+                is **C:\Program Files\PostgreSQL** for 64bits platform and
+                **C:\Program Files (x86)\PostgreSQL** for 32bits platform.
+  - **pgver**: major PostgreSQL version, which will be concatenated to the
+               **pgroot** directory.
 
 Example:
 
