@@ -6,7 +6,7 @@
 # This program is open source, incensed under the PostgreSQL Licence.
 # For license terms, see the LICENSE file.
 #
-# Copyright (c) 2021, Julien Rouhaud
+# Copyright (c) 2021-2022, Julien Rouhaud
 
 use strict;
 use warnings;
