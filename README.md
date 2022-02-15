@@ -1,10 +1,38 @@
 pg_msvc_generator
 =================
 
-MSVC project generator for PostgreSQL extensions.
+Project to help developping PostgreSQL or its extensions on Windows.
 
-Usage
------
+It contains:
+
+- a script to bootstrap an environment to compile PostgreSQL using MSVC
+- a tool to generate MSBC project for PostgreSQL extensions.
+
+Environment bootstrap
+---------------------
+
+/!\ This script is still a work in progress /!\
+
+The script is aimed to be run against the [evalutation virtual
+machine](https://developer.microsoft.com/en-us/windows/downloads/virtual-machines/).
+
+Open an administrator powershell, and execute **bootstrap.ps1**.
+
+You may need to execute first:
+
+```
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+To be able to run the script.
+
+The script will install all dependencies, configure some environment variable
+and create a **postgres.bat** script on the desktop to launch a shell properly
+configured.
+
+
+Project generator
+-----------------
 
 Basic tool usage is:
 
