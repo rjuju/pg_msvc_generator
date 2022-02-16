@@ -141,8 +141,30 @@ if (Test-Path -Path "$launcher")
 }
 else
 {
-    New-Item "$launcher" -ItemType File -Value "@TITLE PostgreSQL dev"
-    Add-Content "$launcher" [Environment]::NewLine
+    New-Item "$launcher" -ItemType File -Value "@TITLE PostgreSQL dev`r`n"
     Add-Content "$launcher" '@%comspec% /k " vcvarsall x64 && cd C:\Users\user/postgres/src/tools/msvc'
+    Write-output "Done"
+}
+
+$config_pl = "C:\config.pl"
+Write-output "Creating $config_pl..."
+if (Test-Path -Path "$config_pl")
+{
+    Write-output "config.pl already exists"
+}
+else
+{
+    New-Item "$config_pl" -ItemType File -Value "# Configuration arguments for vcbuild."
+    Add-Content "$config_pl" "`r`n"
+    Add-Content "$config_pl" "use strict;"
+    Add-Content "$config_pl" "use warnings;"
+    Add-Content "$config_pl" "our `$config;"
+    Add-Content "$config_pl" "`r`n"
+    Add-Content "$config_pl" "`$config->{tap_tests} = 1;"
+    Add-Content "$config_pl" "`$config->{asserts} = 1;"
+    Add-Content "$config_pl" "`$config->{nls} = '$nls_path';"
+    Add-Content "$config_pl" "`$config->{perl} = 'C:/Perl64';"
+    Add-Content "$config_pl" "`$config->{python} = 'C:/Python310';"
+    Add-Content "$config_pl" "`$config->{openssl} = 'C:/Program Files/OpenSSL-Win64';"
     Write-output "Done"
 }
