@@ -94,6 +94,7 @@ Rename-IfExist "C:\ProgramData\chocolatey\bin" "win_flex.exe" "flex.exe"
 Rename-IfExist "C:\ProgramData\chocolatey\bin" "win_bison.exe" "bison.exe"
 Check-ChocoPkg git
 Check-ChocoPkg 7zip
+Check-ChocoPkg diffutils
 Check-ChocoPkg visualstudio2019buildtools
 Check-ChocoPkg visualstudio2019community
 Check-ChocoPkg visualstudio2019-workload-vctools
