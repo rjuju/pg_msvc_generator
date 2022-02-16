@@ -2,6 +2,9 @@
 
 # this may be needed to run the script:
 # Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+$ErrorActionPreference = "Stop"
+
+$envscope = "Machine"
 
 function Check-ChocoPkg {
     param ($pkg)
@@ -24,7 +27,7 @@ function Rename-IfExist {
 
     if (Test-Path -Path "$path\$from")
     {
-        Write-output "Renaming $from to $to..."
+        Write-output "Renaming $path/$from to $to..."
         Rename-Item -Path "$path\$from" "$path\$to"
     }
 }
@@ -43,6 +46,31 @@ function Add-ToPath {
         $newpath = $cur + ";$path"
         [Environment]::SetEnvironmentVariable("Path", "$newpath", "$envscope")
         Write-output "Done"
+    }
+}
+
+function Download-ExtractZip {
+    param($what, $path, $marker, $url)
+
+    if (Test-Path -Path "$path/$marker")
+    {
+        Write-output "$what already processed ($marker present)"
+        return
+    }
+
+    Write-output "Downloading $url in $what.zip..."
+    $tmp = "$Env:TEMP/$what.zip"
+    curl.exe -sSL -o "$tmp" $url
+    if (!$?)
+    {
+        throw "Error downloading the archive"
+    }
+
+    Write-output "Extracting $what.zip in $path"
+    7z.exe x "$tmp" -o"$path"
+    if (!$?)
+    {
+        throw "Error extracting the archive"
     }
 }
 
@@ -65,10 +93,19 @@ Check-ChocoPkg winflexbison3
 Rename-IfExist "C:\ProgramData\chocolatey\bin" "win_flex.exe" "flex.exe"
 Rename-IfExist "C:\ProgramData\chocolatey\bin" "win_bison.exe" "bison.exe"
 Check-ChocoPkg git
+Check-ChocoPkg 7zip
 Check-ChocoPkg visualstudio2019buildtools
 Check-ChocoPkg visualstudio2019community
 Check-ChocoPkg visualstudio2019-workload-vctools
 Check-ChocoPkg visualcpp-build-tools
+
+$gettext_ver = "0.18.1.1-2"
+$nls_path = "C:/gettext-$gettext_ver"
+Download-ExtractZip "gettext-runtime-dev-$gettext_ver" "$nls_path" "lib/libintl.lib" "https://download.gnome.org/binaries/win64/dependencies/gettext-runtime-dev_$($gettext_ver)_win64.zip"
+Rename-IfExist "$nls_path/lib" "intl.lib" "libintl.lib"
+Download-ExtractZip "gettext-runtime_$gettext_ver" "$nls_path" "bin/libintl-8.dll" "https://download.gnome.org/binaries/win64/dependencies/gettext-runtime_$($gettext_ver)_win64.zip"
+Download-ExtractZip "gettext-tools-dev_$gettext_ver" "$nls_path" "bin/msgfmt.exe" "https://download.gnome.org/binaries/win64/dependencies/gettext-tools-dev_$($gettext_ver)_win64.zip"
+Add-ToPath "$nls_path/bin"
 
 Write-output "Linking VS 2019 command line tool to the desktop..."
 $dev_cmd_bat_name = "LaunchDevCmd.bat"
@@ -83,7 +120,6 @@ else
     New-Item -Path $dest_bat -ItemType SymbolicLink -Value "$dev_cmd_bat_path\$dev_cmd_bat_name"
 }
 
-$envscope = "Machine"
 $vcpath = "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Microsoft\VC\v160\"
 $nmake_path = "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Tools\MSVC\14.29.30133\bin\Hostx64\x64"
 $msbuild_path = "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin"
