@@ -103,29 +103,40 @@ sub discover_controlfile
 sub discover_files
 {
 	my ($dir, $match) = @_;
+    # Split line elementsm that could be either words or expressions declared
+    # in $(...)
+	my @elems = split/(\$\([^)]+\) ?|[ ]+)/, $match;
+	my @all_elems = ();
 
-	if ($match =~ /\$\(wildcard (.*)\)/m)
+	foreach my $elem (@elems)
 	{
-		my $_dir = getcwd();
+		next if $elem =~ /^\s*$/;
 
-		chdir "$dir";
-		my @files = glob "$1";
-		chdir "$_dir";
-
-		return \@files;
-	}
-	else
-	{
-		my @files;
-
-		foreach my $f (split /\s+/, $match)
+		if ($elem =~ /\$\(wildcard (.*)\)/m)
 		{
-			chomp($f);
-			push(@files, $f);
-		}
+			my $_dir = getcwd();
 
-		return \@files;
+			chdir "$dir";
+			my @files = glob "$1";
+			chdir "$_dir";
+
+			push @all_elems, @files;
+		}
+		else
+		{
+			my @files;
+
+			foreach my $f (split /\s+/, $match)
+			{
+				chomp($f);
+				push(@files, $f);
+			}
+
+			push @all_elems, @files;
+		}
 	}
+
+	return \@all_elems;
 }
 
 sub discover_extension
@@ -175,7 +186,7 @@ sub generate_zip
 
 sub generate_installer
 {
-	my ($extname, $extversion, $pgver, $platform, $sql_files, $keepnsi) = @_;
+	my ($extname, $extversion, $pgver, $platform, $extdirname, $keepnsi) = @_;
 	my $makensis = "C:\\Program Files (x86)\\NSIS\\Bin\\makensis.exe";
 
 	return if (not -f "$makensis");
@@ -274,15 +285,22 @@ Section "Install" Install
   File $pgver-$platform\\lib\\$extname.dll
 
   SetOutPath "\$INSTDIR\\share\\extension"
-  File $pgver-$platform\\share\\extension\\$extname.control
 EOF
 
-	foreach my $file (@{$sql_files})
+	# add all sql files previously copied if any, including the control file
+	# my @ext_files = glob("$extdirname/*.sql");
+	opendir my $extdir, "$extdirname"
+		or die "Cannot open directory $extdirname: $!";
+	my @ext_files = readdir $extdir;
+	foreach my $file (@ext_files)
 	{
+		# Ignore directories and any hiddden files
+		next if ($file =~ /^\./);
 		print $nsi <<EOF;
   File $pgver-$platform\\share\\extension\\$file
 EOF
 	}
+	closedir $extdir;
 
 	print $nsi <<EOF;
 
@@ -345,20 +363,20 @@ sub release_one_version
 
 	my $share = catfile($dir, "share");
 	mkdir($share, 0700) if (not -d $share);
-	$share = catfile($share, "extension");
-	mkdir($share, 0700) if (not -d $share);
-	copy(catfile("..", "$extname.control"), $share);
+	my $ext = catfile($share, "extension");
+	mkdir($ext, 0700) if (not -d $ext);
+	copy(catfile("..", "$extname.control"), $ext);
 
 	if (defined $sql_files)
 	{
 		foreach my $file (@{$sql_files})
 		{
-			copy(catfile("..", "$file"), $share);
+			copy(catfile("..", "$file"), $ext);
 		}
 	}
 
 	generate_zip($extname, $extversion, $pgver, $platform, $dir);
-	generate_installer($extname, $extversion, $pgver, $platform, $sql_files,
+	generate_installer($extname, $extversion, $pgver, $platform, $ext,
 		$keepnsi);
 
 	print "Done\n\n";
