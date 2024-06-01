@@ -103,8 +103,9 @@ sub discover_controlfile
 sub discover_files
 {
 	my ($dir, $match) = @_;
-    # Split line elementsm that could be either words or expressions declared
-    # in $(...)
+
+	# Split line elements that could be either words or expressions declared
+	# in $(...)
 	my @elems = split/(\$\([^)]+\) ?|[ ]+)/, $match;
 	my @all_elems = ();
 
