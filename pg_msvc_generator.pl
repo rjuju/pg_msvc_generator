@@ -485,7 +485,8 @@ perl release.pl
 pause
 EOF
 
-	copy("release.pl", catfile($msvc, "release.pl"));
+	my $out = catfile(dirname(__FILE__), "release.pl");
+	copy($out, catfile($msvc, "release.pl"));
 }
 
 sub main
